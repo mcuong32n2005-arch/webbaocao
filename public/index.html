@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cà phê Order</title>
+<style>
+  :root { --red:#b22a2e; --pink:#ff6b6b; --gray:#f4f4f4; --muted:#888; --price:#d0021b; --blue:#1a73e8; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Roboto, Arial, sans-serif; color:#222; }
+  button { font-family:inherit; cursor:pointer; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 16px; }
+  .logo { width:100px; height:80px; border-radius:50%; border:3px solid var(--red); color:var(--red); display:grid; place-items:center; font-weight:700; font-size:13px; text-align:center; flex-shrink:0; cursor:pointer; }
+  .search { flex:1; max-width:420px; display:flex; }
+  .search input { flex:1; padding:12px 16px; border:0; background:#eee; border-radius:24px 0 0 24px; font-size:15px; outline:none; }
+  .search button { padding:0 18px; border:0; background:#e0d6c8; border-radius:0 24px 24px 0; font-size:16px; }
+  .right { display:flex; align-items:center; gap:22px; font-size:14px; }
+  .right small { display:block; font-size:12px; }
+  .cart-btn { border:2px solid var(--red); border-radius:6px; padding:10px 14px; display:flex; gap:8px; align-items:center; background:#fff; font-size:14px; }
+  .cart-btn b { background:#e0d6c8; padding:2px 8px; border-radius:4px; }
+  .nav { background:var(--red); color:#fff; display:flex; align-items:center; gap:28px; padding:0 16px; height:58px; }
+  .nav a { font-size:16px; cursor:pointer; }
+  .nav .cat-title { background:#f8f8f6; color:var(--red); padding:14px 20px; border-radius:6px 6px 0 0; align-self:flex-end; width:240px; font-size:17px; }
+  .main { display:grid; grid-template-columns:240px 1fr; gap:14px; padding:0 16px 8px; }
+  .sidebar { border:1px solid #ddd; border-top:0; }
+  .sidebar a { display:flex; gap:12px; align-items:center; padding:12px 18px; font-size:15px; cursor:pointer; }
+  .sidebar a:hover, .sidebar a.on { background:var(--gray); color:var(--red); font-weight:600; }
+  .banner { position:relative; margin-top:14px; height:420px; border-radius:6px; overflow:hidden; color:#fff; display:flex; flex-direction:column; justify-content:center; padding:0 70px; transition:background .4s; }
+  .banner small { letter-spacing:2px; font-weight:700; }
+  .banner h1 { font-size:100px; line-height:1; }
+  .banner h2 { font-size:52px; }
+  .banner .cta { margin-top:20px; align-self:flex-start; padding:10px 22px; border:2px solid #fff; background:transparent; color:#fff; border-radius:24px; font-size:15px; }
+  .arrow { position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; border:0; background:rgba(255,255,255,.6); font-size:22px; }
+  .arrow.l { left:10px; } .arrow.r { right:10px; }
+  .dots { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); display:flex; gap:8px; }
+  .dots i { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.5); cursor:pointer; }
+  .dots i.on { background:#fff; }
+  section { padding:24px 16px; }
+  section h3 { font-size:22px; margin-bottom:20px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:24px; }
+  .card { border-radius:8px; box-shadow:0 1px 6px rgba(0,0,0,.12); overflow:hidden; background:#fff; cursor:pointer; }
+  .card:hover { box-shadow:0 4px 14px rgba(0,0,0,.2); }
+  .thumb { height:240px; background:#dd6a2a; position:relative; display:grid; place-items:center; font-size:90px; }
+  .badge { position:absolute; left:0; bottom:0; width:100%; background:#c3330f; color:#fff; font-weight:800; font-size:22px; padding:10px; }
+  .info { padding:12px; position:relative; }
+  .info small { color:var(--muted); letter-spacing:1px; font-size:12px; }
+  .info p { margin:6px 0; font-size:16px; }
+  .info b { color:var(--price); }
+  .add { position:absolute; right:10px; bottom:10px; width:30px; height:30px; border-radius:50%; background:var(--pink); color:#fff; border:0; font-size:22px; line-height:1; }
+  .empty { color:var(--muted); padding:30px 0; }
+  .more { display:block; margin:28px auto 0; padding:10px 24px; border:1px solid var(--blue); color:var(--blue); background:#fff; border-radius:24px; font-size:15px; }
+  footer { background:#eee; display:grid; grid-template-columns:2fr 1fr 1fr 1.4fr; gap:24px; padding:36px 16px; font-size:15px; line-height:1.6; }
+  footer h4 { font-size:18px; margin-bottom:14px; }
+  footer li { list-style:none; margin-bottom:10px; cursor:pointer; }
+  footer li:hover { color:var(--red); }
+  .sub { display:flex; } .sub input { flex:1; padding:10px 14px; border:0; border-radius:20px 0 0 20px; min-width:0; }
+  .sub button { border:0; background:#e0d6c8; color:var(--blue); padding:0 18px; border-radius:0 20px 20px 0; }
+  .float { position:fixed; right:14px; bottom:80px; display:flex; flex-direction:column; gap:12px; z-index:5; }
+  .float button { width:44px; height:44px; border-radius:50%; border:0; color:#fff; font-size:18px; }
+  .up { background:var(--blue); } .call { background:var(--price); }
+  /* Lớp phủ, giỏ hàng, hộp chi tiết */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; z-index:20; }
+  .overlay.show { display:block; }
+  .drawer { position:fixed; top:0; right:-420px; width:400px; max-width:100%; height:100%; background:#fff; z-index:21; display:flex; flex-direction:column; transition:right .25s; }
+  .drawer.show { right:0; }
+  .drawer header, .drawer footer { padding:16px; display:block; background:#fff; }
+  .drawer header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; font-size:20px; font-weight:600; }
+  .drawer .items { flex:1; overflow-y:auto; padding:8px 16px; }
+  .drawer footer { border-top:1px solid #eee; grid-template-columns:none; padding:16px; }
+  .line { display:flex; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid #f0f0f0; }
+  .line .ic { font-size:34px; }
+  .line .t { flex:1; font-size:14px; } .line .t b { display:block; font-size:15px; }
+  .qty { display:flex; align-items:center; gap:8px; }
+  .qty button { width:26px; height:26px; border-radius:50%; border:1px solid #ccc; background:#fff; }
+  .x { border:0; background:none; font-size:22px; color:var(--muted); }
+  .total { display:flex; justify-content:space-between; font-size:18px; font-weight:600; margin-bottom:12px; }
+  .primary { width:100%; padding:13px; border:0; border-radius:8px; background:var(--red); color:#fff; font-size:16px; }
+  .modal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:440px; max-width:92%; max-height:90vh; overflow-y:auto; background:#fff; border-radius:12px; z-index:22; display:none; }
+  .modal.show { display:block; }
+  .modal .pic { height:180px; background:#dd6a2a; display:grid; place-items:center; font-size:90px; border-radius:12px 12px 0 0; }
+  .modal .body { padding:18px; }
+  .modal h2 { font-size:22px; margin-bottom:6px; }
+  .modal p { color:#555; line-height:1.5; margin-bottom:14px; }
+  .row { display:flex; gap:10px; align-items:center; margin-bottom:14px; }
+  .size { padding:8px 16px; border:1px solid #ccc; border-radius:20px; background:#fff; }
+  .size.on { border-color:var(--red); color:var(--red); font-weight:600; }
+  .modal input, .modal textarea { width:100%; padding:10px 12px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px; font:inherit; }
+  .close { position:absolute; top:8px; right:12px; border:0; background:rgba(255,255,255,.8); border-radius:50%; width:32px; height:32px; font-size:20px; }
+  .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(80px); background:#222; color:#fff; padding:12px 22px; border-radius:24px; z-index:30; transition:transform .25s; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  @media (max-width:800px) {
+    .main { grid-template-columns:1fr; } .sidebar { display:none; }
+    .nav .cat-title { width:auto; } .nav a:not(.cat-title) { display:none; } .right .hide { display:none; }
+    .banner { height:240px; padding:0 30px; } .banner h1 { font-size:56px; } .banner h2 { font-size:28px; }
+    footer { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="logo" onclick="setCat('Tất cả')">COFFEE<br>SHOP</div>
+    <div class="search"><input id="q" placeholder="Xin chào, bạn cần..." oninput="setQuery(this.value)"><button onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">🔍</button></div>
+    <div class="right">
+      <span class="hide">📞 <b>Giao tận nơi</b> 19001755</span>
+      <span id="user" style="cursor:pointer" onclick="toast('Tính năng đăng nhập sẽ làm sau')">👤 Tài khoản<small>Đăng nhập</small></span>
+      <button class="cart-btn" onclick="toggleCart(true)">🛒 Giỏ hàng <b id="count">0</b></button>
+    </div>
+  </div>
+  <nav class="nav">
+    <a class="cat-title" onclick="setCat('Tất cả')">☰ Danh mục sản phẩm</a>
+    <a onclick="toast('Đổi trả trong 24 giờ nếu sản phẩm lỗi')">Chính sách đổi trả</a>
+    <a onclick="document.querySelector('footer').scrollIntoView({behavior:'smooth'})">Liên hệ</a>
+  </nav>
+</header>
+
+<div class="main">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="banner" id="banner">
+    <small id="b-sub"></small><h1 id="b-h1"></h1><h2 id="b-h2"></h2>
+    <button class="cta" onclick="setCat('Cà Phê')">Đặt ngay</button>
+    <button class="arrow l" onclick="slide(-1)">‹</button><button class="arrow r" onclick="slide(1)">›</button>
+    <div class="dots" id="dots"></div>
+  </div>
+</div>
+
+<section id="products">
+  <h3 id="title"></h3>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" onclick="showAll=true;render()">Xem tất cả ›</button>
+</section>
+
+<footer>
+  <div><h4>Thông tin công ty</h4><p>Địa chỉ: 123 Đường ABC, Quận 1, TP Hồ Chí Minh.<br>Số điện thoại: 19001755<br>Email: lienhe@example.com</p></div>
+  <div><h4>Chính sách</h4><ul><li onclick="toast('Đang cập nhật')">Chính sách đặt hàng</li><li onclick="toast('Đang cập nhật')">Chính sách bảo mật</li><li onclick="toast('Đang cập nhật')">Chính sách thanh toán</li></ul></div>
+  <div><h4>Hỗ trợ</h4><ul><li onclick="q.focus();scrollTo({top:0,behavior:'smooth'})">Tìm kiếm</li><li onclick="toggleCart(true)">Giỏ hàng</li><li onclick="toast('Gọi 19001755 để được hỗ trợ')">Liên hệ</li></ul></div>
+  <div><h4>Đăng ký nhận tin</h4><div class="sub"><input id="mail" placeholder="Nhập địa chỉ email"><button onclick="subscribe()">Đăng ký</button></div></div>
+</footer>
+
+<div class="float">
+  <button class="up" onclick="scrollTo({top:0,behavior:'smooth'})">⌃</button>
+  <button class="call" onclick="toast('Gọi 19001755')">📞</button>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<aside class="drawer" id="drawer">
+  <header>Giỏ hàng <button class="x" onclick="closeAll()">×</button></header>
+  <div class="items" id="items"></div>
+  <footer>
+    <div class="total"><span>Tổng cộng</span><span id="total">0₫</span></div>
+    <button class="primary" onclick="openCheckout()">Đặt hàng</button>
+  </footer>
+</aside>
+
+<div class="modal" id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== DỮ LIỆU: tạm để trong code. Khi có MongoDB, trang sẽ tự lấy từ /api/products =====
+  const LOCAL = [
+    { id:1,  name:"Phin Sữa Đá",    price:29000, cat:"Cà Phê", tag:"BÁN CHẠY!", icon:"🧋", desc:"Cà phê phin đậm vị pha cùng sữa đặc, uống lạnh với đá." },
+    { id:2,  name:"Phin Đen Đá",    price:29000, cat:"Cà Phê", tag:"BÁN CHẠY!", icon:"☕", desc:"Cà phê phin nguyên chất, đậm và ít ngọt." },
+    { id:3,  name:"Bạc Xỉu Đá",     price:29000, cat:"Cà Phê", tag:"THỬ NGAY!", icon:"🥛", desc:"Nhiều sữa, ít cà phê, vị ngọt béo dễ uống." },
+    { id:4,  name:"Phin Sữa Nóng",  price:29000, cat:"Cà Phê", tag:"",          icon:"☕", desc:"Cà phê phin sữa phục vụ nóng." },
+    { id:5,  name:"Phin Đen Nóng",  price:29000, cat:"Cà Phê", tag:"",          icon:"☕", desc:"Cà phê phin đen phục vụ nóng." },
+    { id:6,  name:"Trà Đào Cam Sả", price:45000, cat:"Trà",    tag:"BÁN CHẠY!", icon:"🍑", desc:"Trà đen thơm mùi sả, đào miếng và cam tươi." },
+    { id:7,  name:"Trà Sen Vàng",   price:45000, cat:"Trà",    tag:"",          icon:"🍵", desc:"Trà ô long hạt sen, vị thanh và béo nhẹ." },
+    { id:8,  name:"Trà Xanh Đá",    price:39000, cat:"Trà",    tag:"",          icon:"🍃", desc:"Trà xanh mát lạnh, vị chát nhẹ." },
+    { id:9,  name:"Freeze Trà Xanh",price:55000, cat:"Freeze", tag:"THỬ NGAY!", icon:"🥤", desc:"Đá xay trà xanh phủ kem béo." },
+    { id:10, name:"Cookies Freeze", price:55000, cat:"Freeze", tag:"",          icon:"🍪", desc:"Đá xay vị cookie và kem tươi." },
+    { id:11, name:"Bánh Tiramisu",  price:35000, cat:"Bánh Ngọt", tag:"",       icon:"🍰", desc:"Bánh kem cà phê mềm, phủ bột cacao." },
+    { id:12, name:"Bánh Mì Que",    price:19000, cat:"Bánh Ngọt", tag:"",       icon:"🥖", desc:"Bánh mì que giòn, nhân pate cay." },
+  ];
+  const CATS = [["Tất cả","📋"],["Cà Phê","☕"],["Trà","🍵"],["Freeze","🥤"],["Bánh Ngọt","🍰"]];
+  const SLIDES = [
+    { sub:"MỘT CHẤT PHIN TỪ 1999", h1:"PHIN", h2:"Sữa Đá", bg:"linear-gradient(120deg,#5c5a2a,#7b6b35 60%,#7a4e3a)" },
+    { sub:"MÁT LẠNH NGÀY HÈ", h1:"FREEZE", h2:"Đá xay mới", bg:"linear-gradient(120deg,#1f6b4f,#3f9b6d 60%,#9bd1a8)" },
+    { sub:"THANH MÁT TỰ NHIÊN", h1:"TRÀ", h2:"Đào Cam Sả", bg:"linear-gradient(120deg,#b4501f,#e08a3c 60%,#f0b86a)" },
+  ];
+
+  // ===== TRẠNG THÁI =====
+  let products = LOCAL, cat = "Tất cả", query = "", showAll = false, si = 0, size = "M", qty = 1;
+  let cart = [];
+  try { cart = JSON.parse(localStorage.getItem("cart") || "[]"); } catch (e) {}
+  const $ = id => document.getElementById(id);
+  const fmt = n => n.toLocaleString("vi-VN") + "₫";
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const pid = p => p.id ?? p._id;
+
+  // ===== HIỂN THỊ SẢN PHẨM =====
+  function render() {
+    $("sidebar").innerHTML = CATS.map(([c, i]) => `<a class="${c===cat?"on":""}" onclick="setCat('${c}')">${i} ${c}</a>`).join("");
+    let list = products.filter(p => (cat === "Tất cả" || p.cat === cat) && p.name.toLowerCase().includes(query.toLowerCase()));
+    $("title").textContent = query ? `Kết quả cho "${query}"` : (cat === "Tất cả" ? "MỘT CHẤT PHIN TỪ 1999" : cat.toUpperCase());
+    const limited = !showAll && cat === "Tất cả" && !query && list.length > 5;
+    if (limited) list = list.slice(0, 5);
+    $("more").style.display = limited ? "block" : "none";
+    $("grid").innerHTML = list.length ? list.map(p => `
+      <div class="card" onclick="openProduct('${pid(p)}')">
+        <div class="thumb">${esc(p.icon || "☕")}${p.tag ? `<div class="badge">${esc(p.tag)}</div>` : ""}</div>
+        <div class="info"><small>HIGHLANDS COFFEE</small><p>${esc(p.name)}</p><b>${fmt(p.price)}</b>
+        <button class="add" aria-label="Thêm ${esc(p.name)}" onclick="event.stopPropagation();addToCart('${pid(p)}','M',1)">+</button></div>
+      </div>`).join("") : `<p class="empty">Không tìm thấy món nào.</p>`;
+  }
+  function setCat(c) { cat = c; query = ""; $("q").value = ""; showAll = false; render(); $("products").scrollIntoView({behavior:"smooth"}); }
+  function setQuery(v) { query = v.trim(); render(); }
+
+  // ===== BANNER =====
+  function slide(d) { si = (si + d + SLIDES.length) % SLIDES.length; drawSlide(); }
+  function drawSlide() {
+    const s = SLIDES[si];
+    $("banner").style.background = s.bg; $("b-sub").textContent = s.sub; $("b-h1").textContent = s.h1; $("b-h2").textContent = s.h2;
+    $("dots").innerHTML = SLIDES.map((_, i) => `<i class="${i===si?"on":""}" onclick="si=${i};drawSlide()"></i>`).join("");
+  }
+
+  // ===== HỘP CHI TIẾT MÓN =====
+  function openProduct(id) {
+    const p = products.find(x => String(pid(x)) === String(id)); if (!p) return;
+    size = "M"; qty = 1;
+    $("modal").innerHTML = `
+      <button class="close" onclick="closeAll()">×</button>
+      <div class="pic">${esc(p.icon || "☕")}</div>
+      <div class="body">
+        <h2>${esc(p.name)}</h2><p>${esc(p.desc || "Đang cập nhật mô tả.")}</p>
+        <div class="row"><b>Size:</b>
+          <button class="size on" onclick="pickSize('M',this)">M</button>
+          <button class="size" onclick="pickSize('L',this)">L (+10.000₫)</button></div>
+        <div class="row"><b>Số lượng:</b><div class="qty">
+          <button onclick="chgQty(-1)">−</button><span id="mq">1</span><button onclick="chgQty(1)">+</button></div></div>
+        <button class="primary" onclick="addToCart('${pid(p)}',size,qty);closeAll()">Thêm vào giỏ hàng</button>
+      </div>`;
+    openLayer("modal");
+  }
+  function pickSize(s, el) { size = s; document.querySelectorAll(".size").forEach(b => b.classList.remove("on")); el.classList.add("on"); }
+  function chgQty(d) { qty = Math.max(1, qty + d); $("mq").textContent = qty; }
+
+  // ===== GIỎ HÀNG =====
+  function addToCart(id, sz, n) {
+    const p = products.find(x => String(pid(x)) === String(id)); if (!p) return;
+    const key = id + "-" + sz, found = cart.find(l => l.key === key);
+    if (found) found.qty += n;
+    else cart.push({ key, name: p.name, icon: p.icon || "☕", size: sz, price: p.price + (sz === "L" ? 10000 : 0), qty: n });
+    saveCart(); toast(`Đã thêm ${p.name} vào giỏ`);
+  }
+  function chgLine(key, d) {
+    const l = cart.find(x => x.key === key); if (!l) return;
+    l.qty += d; if (l.qty <= 0) cart = cart.filter(x => x.key !== key);
+    saveCart();
+  }
+  function delLine(key) { cart = cart.filter(x => x.key !== key); saveCart(); }
+  function saveCart() {
+    try { localStorage.setItem("cart", JSON.stringify(cart)); } catch (e) {}
+    $("count").textContent = cart.reduce((s, l) => s + l.qty, 0);
+    $("total").textContent = fmt(cart.reduce((s, l) => s + l.price * l.qty, 0));
+    $("items").innerHTML = cart.length ? cart.map(l => `
+      <div class="line"><span class="ic">${esc(l.icon)}</span>
+        <div class="t"><b>${esc(l.name)}</b>Size ${l.size} · ${fmt(l.price)}</div>
+        <div class="qty"><button onclick="chgLine('${l.key}',-1)">−</button><span>${l.qty}</span><button onclick="chgLine('${l.key}',1)">+</button></div>
+        <button class="x" onclick="delLine('${l.key}')">×</button></div>`).join("") : `<p class="empty">Giỏ hàng đang trống. Hãy chọn món bạn thích.</p>`;
+  }
+  function toggleCart(open) { open ? openLayer("drawer") : closeAll(); }
+
+  // ===== ĐẶT HÀNG =====
+  function openCheckout() {
+    if (!cart.length) return toast("Giỏ hàng đang trống");
+    closeAll();
+    $("modal").innerHTML = `
+      <button class="close" onclick="closeAll()">×</button>
+      <div class="body"><h2>Thông tin giao hàng</h2><p>Tổng: <b>${$("total").textContent}</b></p>
+        <input id="f-name" placeholder="Họ và tên"><input id="f-phone" placeholder="Số điện thoại">
+        <textarea id="f-addr" rows="2" placeholder="Địa chỉ giao hàng"></textarea>
+        <button class="primary" onclick="submitOrder()">Xác nhận đặt hàng</button></div>`;
+    openLayer("modal");
+  }
+  async function submitOrder() {
+    const name = $("f-name").value.trim(), phone = $("f-phone").value.trim(), addr = $("f-addr").value.trim();
+    if (!name || !/^\d{9,11}$/.test(phone) || !addr) return toast("Vui lòng nhập đủ tên, số điện thoại hợp lệ và địa chỉ");
+    const order = { name, phone, addr, items: cart, total: cart.reduce((s, l) => s + l.price * l.qty, 0) };
+    try { await fetch("/api/orders", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(order) }); } catch (e) {}
+    cart = []; saveCart(); closeAll(); toast("Đặt hàng thành công! Cảm ơn " + name);
+  }
+
+  // ===== TIỆN ÍCH =====
+  function openLayer(id) { $("overlay").classList.add("show"); $(id).classList.add("show"); }
+  function closeAll() { ["overlay","drawer","modal"].forEach(i => $(i).classList.remove("show")); }
+  function subscribe() { const m = $("mail").value.trim(); /.+@.+\..+/.test(m) ? (toast("Đã đăng ký: " + m), $("mail").value = "") : toast("Email chưa hợp lệ"); }
+  let tt; function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 2200); }
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeAll(); });
+
+  // ===== KHỞI ĐỘNG: thử lấy từ MongoDB (qua server), không được thì dùng dữ liệu tạm =====
+  async function init() {
+    drawSlide(); saveCart(); render();
+    try {
+      const res = await fetch("/api/products");
+      if (!res.ok) throw 0;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) { products = data; render(); }
+    } catch (e) { /* chưa có server: giữ dữ liệu tạm */ }
+  }
+  init();
+</script>
+</body>
+</html>
